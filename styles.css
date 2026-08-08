@@ -583,6 +583,19 @@ ul { list-style: none; margin: 0; padding: 0; }
 .diagnostico-input {
   min-height: 52px;
   font-size: 0.85rem;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.85rem;
+  transition: border-color var(--ease), background var(--ease);
+  resize: vertical;
+  width: 100%;
+}
+
+.diagnostico-input:focus {
+  border-color: var(--accent);
+  outline: none;
 }
 
 .status-toggle {
