@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#0e1317" />
+<title>Centro de Soporte · Gestor de Tickets</title>
+<meta name="description" content="Gestor de tickets de soporte técnico" />
+<link rel="icon" href="data:," />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+  rel="stylesheet"
+/>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Overlay de carga -->
+  <div id="loadingOverlay" class="loading-overlay" aria-hidden="true">
+    <div class="spinner" role="status"></div>
+    <p id="loadingText">Cargando tickets…</p>
+  </div>
+
+  <!-- Notificaciones -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <div class="app-shell">
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-mark" aria-hidden="true">◆</span>
+        <div>
+          <h1>Centro de Soporte</h1>
+          <p>Gestor de tickets técnicos</p>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav" role="tablist" aria-label="Navegación principal">
+        <button class="nav-btn active" type="button" role="tab" aria-selected="true" aria-controls="tab-activos" id="navtab-activos" data-tab="activos">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 12h4l2 4h6l2-4h4" />
+            <path d="M5.5 5h13L21 12v6a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18v-6l2.5-7Z" />
+          </svg>
+          <span>Tickets activos</span>
+          <span class="nav-badge" id="badgeActivos">0</span>
+        </button>
+
+        <button class="nav-btn" type="button" role="tab" aria-selected="false" aria-controls="tab-archivados" id="navtab-archivados" data-tab="archivados">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="4.5" rx="1" />
+            <path d="M4.5 8.5V18a1.5 1.5 0 0 0 1.5 1.5h12A1.5 1.5 0 0 0 19.5 18V8.5" />
+            <path d="M10 13h4" />
+          </svg>
+          <span>Archivados</span>
+        </button>
+
+        <button class="nav-btn" type="button" role="tab" aria-selected="false" aria-controls="tab-analiticas" id="navtab-analiticas" data-tab="analiticas">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 19V5" />
+            <path d="M4 19h16" />
+            <rect x="7" y="11" width="3" height="8" />
+            <rect x="12.5" y="7" width="3" height="12" />
+            <rect x="18" y="14" width="3" height="5" />
+          </svg>
+          <span>Analíticas</span>
+        </button>
+
+        <button class="nav-btn" type="button" role="tab" aria-selected="false" aria-controls="tab-nuevo" id="navtab-nuevo" data-tab="nuevo">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 8v8M8 12h8" />
+          </svg>
+          <span>Nuevo ticket</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="refreshBtn" class="btn-ghost" type="button">
+          <span aria-hidden="true">↻</span><span>Actualizar datos</span>
+        </button>
+
+        <div class="theme-toggle">
+          <label class="switch">
+            <input type="checkbox" id="themeSwitch" />
+            <span class="switch-track"><span class="switch-thumb"></span></span>
+          </label>
+          <span id="themeLabel">Modo oscuro</span>
+        </div>
+
+        <p class="last-sync" id="lastSync">Sin sincronizar</p>
+      </div>
+    </aside>
+
+    <!-- ================= CONTENIDO ================= -->
+    <main class="main-content">
+
+      <!-- TAB 1: TICKETS ACTIVOS -->
+      <section id="tab-activos" class="tab-panel active" role="tabpanel" aria-labelledby="navtab-activos" tabindex="0">
+        <header class="panel-header">
+          <div>
+            <h2>Tickets activos</h2>
+            <p class="panel-subtitle" id="countActivos">0 tickets</p>
+          </div>
+          <div class="toolbar">
+            <input type="search" id="searchActivos" placeholder="Buscar por nombre, localidad o dispositivo…" aria-label="Buscar tickets activos" />
+            <select id="filterActivos" aria-label="Filtrar por prioridad">
+              <option value="todas">Todas las prioridades</option>
+              <option value="Alta">Alta</option>
+              <option value="Media">Media</option>
+              <option value="Baja">Baja</option>
+            </select>
+          </div>
+        </header>
+        <div id="gridActivos" class="ticket-grid"></div>
+      </section>
+
+      <!-- TAB 2: TICKETS ARCHIVADOS -->
+      <section id="tab-archivados" class="tab-panel" role="tabpanel" aria-labelledby="navtab-archivados" tabindex="0">
+        <header class="panel-header">
+          <div>
+            <h2>Tickets archivados</h2>
+            <p class="panel-subtitle" id="countArchivados">0 tickets</p>
+          </div>
+          <div class="toolbar">
+            <input type="search" id="searchArchivados" placeholder="Buscar por nombre, localidad o dispositivo…" aria-label="Buscar tickets archivados" />
+            <select id="filterArchivados" aria-label="Filtrar por prioridad">
+              <option value="todas">Todas las prioridades</option>
+              <option value="Alta">Alta</option>
+              <option value="Media">Media</option>
+              <option value="Baja">Baja</option>
+            </select>
+          </div>
+        </header>
+        <div id="gridArchivados" class="ticket-grid"></div>
+      </section>
+
+      <!-- TAB 3: ANALÍTICAS -->
+      <section id="tab-analiticas" class="tab-panel" role="tabpanel" aria-labelledby="navtab-analiticas" tabindex="0">
+        <header class="panel-header">
+          <div>
+            <h2>Analíticas</h2>
+            <p class="panel-subtitle">Panorama general de tu carga de trabajo</p>
+          </div>
+        </header>
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h3>Distribución por localidad</h3>
+            <div class="chart-canvas-wrap">
+              <canvas id="chartLocalidades"></canvas>
+              <p class="chart-empty" id="emptyLocalidades" hidden>Todavía no hay tickets para graficar.</p>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h3>Activos vs. archivados</h3>
+            <div class="chart-canvas-wrap">
+              <canvas id="chartArchivados"></canvas>
+              <p class="chart-empty" id="emptyArchivadosChart" hidden>Todavía no hay tickets para graficar.</p>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h3>Carga semanal (tickets no archivados)</h3>
+            <div class="chart-canvas-wrap">
+              <canvas id="chartCarga"></canvas>
+              <p class="chart-empty" id="emptyCarga" hidden>Todavía no hay tickets para graficar.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: NUEVO TICKET -->
+      <section id="tab-nuevo" class="tab-panel" role="tabpanel" aria-labelledby="navtab-nuevo" tabindex="0">
+        <header class="panel-header">
+          <div>
+            <h2>Cargar nuevo ticket</h2>
+            <p class="panel-subtitle">Registrá una nueva consulta de soporte</p>
+          </div>
+        </header>
+
+        <form id="newTicketForm" class="ticket-form" novalidate>
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="fNombre">Nombre</label>
+              <input id="fNombre" name="nombre" type="text" required />
+            </div>
+            <div class="form-field">
+              <label for="fApellido">Apellido</label>
+              <input id="fApellido" name="apellido" type="text" required />
+            </div>
+            <div class="form-field">
+              <label for="fLocalidad">Localidad</label>
+              <input id="fLocalidad" name="localidad" type="text" required />
+            </div>
+            <div class="form-field">
+              <label for="fTelefono">Teléfono (WhatsApp)</label>
+              <input id="fTelefono" name="telefono" type="tel" placeholder="+54 9 11 1234 5678" required />
+            </div>
+            <div class="form-field">
+              <label for="fDispositivo">Dispositivo</label>
+              <input id="fDispositivo" name="dispositivo" type="text" placeholder="Ej: Notebook HP, iPhone 12…" required />
+            </div>
+            <div class="form-field">
+              <label for="fPrioridad">Prioridad</label>
+              <select id="fPrioridad" name="prioridad">
+                <option value="Baja">Baja</option>
+                <option value="Media" selected>Media</option>
+                <option value="Alta">Alta</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-field form-field-full">
+            <label for="fDetalles">Detalles de la consulta</label>
+            <textarea id="fDetalles" name="detalles" rows="4" required placeholder="Describí el problema del cliente…"></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="reset" class="btn-ghost"><span>Limpiar</span></button>
+            <button type="submit" class="btn-primary" id="submitTicketBtn">Crear ticket</button>
+          </div>
+        </form>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>
