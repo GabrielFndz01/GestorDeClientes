@@ -1,11 +1,4 @@
-/* ==========================================================================
-   CENTRO DE SOPORTE — Gestor de Tickets
-   Hoja de estilos
-   Estructura: 1) Tokens  2) Reset  3) Layout  4) Sidebar  5) Botones/Forms
-   6) Ticket cards  7) Charts  8) Toasts/Loading  9) Utilidades  10) Responsive
-   ========================================================================== */
 
-/* ---------- 1) TOKENS DE DISEÑO ---------- */
 :root,
 [data-theme="dark"] {
   --font-display: "Space Grotesk", "Inter", sans-serif;

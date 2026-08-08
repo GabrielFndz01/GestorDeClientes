@@ -7,9 +7,9 @@ const CONFIG = {
 const PLACEHOLDER_URL = "URL_DE_TU_API_AQUI";
 
 /* ---------- ESTADO GLOBAL ---------- */
-let ticketsData = [];           // Cache local de tickets (evita GET innecesarios)
-let activeTab = "activos";      // Pestaña activa
-let charts = {};                // Instancias de Chart.js activas
+let ticketsData = [];          
+let activeTab = "activos";      
+let charts = {};                
 
 const searchTerm = { activos: "", archivados: "" };
 const priorityFilter = { activos: "todas", archivados: "todas" };
