@@ -1,35 +1,7 @@
-/* ==========================================================================
-   CENTRO DE SOPORTE — Gestor de Tickets
-   app.js
-
-   CONTRATO DE LA API (Google Apps Script - Web App):
-   ---------------------------------------------------------------------
-   GET  {API_URL}
-     -> Devuelve un array JSON de tickets con las claves exactas:
-        Nr_Cliente, "Marca temporal", Nombre, Apellido, Localidad,
-        "Teléfono (WhatsApp)", Dispositivo, "Detalles de la consulta",
-        Prioridad ("Alta"|"Media"|"Baja"), Estado (boolean),
-        Archivado (boolean), Diagnostico (string)
-
-   POST {API_URL}   (Content-Type: text/plain — ver nota más abajo)
-     Body: { action: "update", Nr_Cliente, ...camposModificados }
-     Body: { action: "create", Nombre, Apellido, Localidad, ... }
-     -> El backend debe parsear e.postData.contents con JSON.parse()
-        y responder con JSON, idealmente devolviendo el ticket creado/
-        actualizado (para "create" es clave devolver el Nr_Cliente real
-        que asignó la planilla).
-
-   NOTA SOBRE CORS: los Web Apps de Apps Script no manejan bien el
-   preflight OPTIONS que dispara un POST con Content-Type: application/json.
-   Por eso este archivo envía el POST como "text/plain;charset=utf-8"
-   (sigue siendo JSON válido en el body) para que el navegador lo trate
-   como "solicitud simple" y evite el preflight.
-   ========================================================================== */
 
 /* ---------- CONFIGURACIÓN ---------- */
 const CONFIG = {
-  // Reemplazá esto por la URL de tu despliegue de Apps Script (…/exec)
-  API_URL: "URL_DE_TU_API_AQUI",
+  API_URL: "https://script.google.com/macros/s/AKfycbwKQ7ESF_QLdCfLn-1nlH8bkwdfXLq9jOsO_vlKGMyXxRlbmYqBJJO_B2qU0jIxGbQMkg/exec",
 };
 
 const PLACEHOLDER_URL = "URL_DE_TU_API_AQUI";
