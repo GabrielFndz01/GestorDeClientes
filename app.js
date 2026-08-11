@@ -30,6 +30,14 @@ async function init() {
   
   document.getElementById("refreshBtn").addEventListener("click", () => loadTickets());
   document.getElementById("newTicketForm").addEventListener("submit", handleNewTicketSubmit);
+  // Formato automático de teléfono en el formulario "Nuevo ticket"
+  const phoneInput = document.getElementById("fTelefono");
+  if (phoneInput) {
+    phoneInput.addEventListener("input", formatPhoneInput);
+    phoneInput.addEventListener("blur", (e) => {
+      e.target.value = formatPhoneDigits(e.target.value);
+    });
+  }
   
   // NUEVO: Listener para el botón de restaurar
   const restoreBtn = document.getElementById("restoreBtn");
@@ -602,4 +610,34 @@ function debounce(fn, delay = 300) {
     clearTimeout(timer);
     timer = setTimeout(() => fn(...args), delay);
   };
+}
+
+// Formatea una cadena de teléfono en el patrón 11-3557-4913 (2-4-4)
+function formatPhoneDigits(value) {
+  const digits = String(value || "").replace(/\D/g, "").slice(0, 10);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 6) return digits.slice(0, 2) + "-" + digits.slice(2);
+  return digits.slice(0, 2) + "-" + digits.slice(2, 6) + "-" + digits.slice(6);
+}
+
+function formatPhoneInput(e) {
+  const input = e.target;
+  const old = input.value;
+  const sel = typeof input.selectionStart === "number" ? input.selectionStart : old.length;
+  const digitsBefore = old.slice(0, sel).replace(/\D/g, "").length;
+
+  const formatted = formatPhoneDigits(old);
+  input.value = formatted;
+
+  // Calcular nueva posición del cursor basada en cuántos dígitos había antes
+  let newPos = formatted.length;
+  if (digitsBefore <= 2) newPos = digitsBefore;
+  else if (digitsBefore <= 6) newPos = digitsBefore + 1; // un guión añadido
+  else newPos = digitsBefore + 2; // dos guiones añadidos
+
+  try {
+    input.setSelectionRange(newPos, newPos);
+  } catch (err) {
+    // algunos navegadores pueden fallar si el input no está enfocado; ignoramos
+  }
 }

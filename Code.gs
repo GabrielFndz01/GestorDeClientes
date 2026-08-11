@@ -1,16 +1,14 @@
 const SHEET_NAME = "Registro_Clientes";
+const DEMO_SHEET_NAME = "Registro_Clientes_Demo"; // La nueva hoja
 const ID_COLUMN = "Nr_Cliente";
 const TIMESTAMP_COLUMN = "Marca temporal";
-
 
 function doGet(e) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
   const data = sheet.getDataRange().getValues();
 
-
   const headers = data[0];
   const rows = data.slice(1);
-
 
   const json = rows.map(row => {
     let obj = {};
@@ -20,11 +18,9 @@ function doGet(e) {
     return obj;
   });
 
-
   return ContentService.createTextOutput(JSON.stringify(json))
     .setMimeType(ContentService.MimeType.JSON);
 }
-
 
 function doPost(e) {
   try {
@@ -33,6 +29,7 @@ function doPost(e) {
 
     if (payload.action === "update") return handleUpdate(sheet, payload);
     if (payload.action === "create") return handleCreate(sheet, payload);
+    if (payload.action === "restore") return handleRestore();
 
     return respond({ success: false, error: "Acción no reconocida: " + payload.action });
   } catch (err) {
@@ -40,6 +37,24 @@ function doPost(e) {
   }
 }
 
+function handleRestore() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const activeSheet = ss.getSheetByName(SHEET_NAME);
+  const demoSheet = ss.getSheetByName(DEMO_SHEET_NAME);
+
+  if (!demoSheet) {
+    return respond({ success: false, error: "No se encontró la hoja de demo: " + DEMO_SHEET_NAME });
+  }
+
+  activeSheet.clear();
+
+  const demoData = demoSheet.getDataRange().getValues();
+  if (demoData.length > 0) {
+    activeSheet.getRange(1, 1, demoData.length, demoData[0].length).setValues(demoData);
+  }
+
+  return respond({ success: true, action: "restore" });
+}
 
 function handleUpdate(sheet, payload) {
   const values = sheet.getDataRange().getValues();
@@ -53,7 +68,7 @@ function handleUpdate(sheet, payload) {
   for (let r = 1; r < values.length; r++) {
     if (String(values[r][idCol]) === String(payload.Nr_Cliente)) {
       headers.forEach((header, c) => {
-        if (header === ID_COLUMN) return; // el ID nunca se reescribe
+        if (header === ID_COLUMN) return;
         if (Object.prototype.hasOwnProperty.call(payload, header)) {
           sheet.getRange(r + 1, c + 1).setValue(payload[header]);
         }
@@ -65,7 +80,6 @@ function handleUpdate(sheet, payload) {
   return respond({ success: false, error: "No se encontró el ticket Nr_Cliente=" + payload.Nr_Cliente });
 }
 
-
 function handleCreate(sheet, payload) {
   const values = sheet.getDataRange().getValues();
   const headers = values[0];
@@ -75,13 +89,11 @@ function handleCreate(sheet, payload) {
   const nextId = getNextId(rows, idCol);
 
   const newRow = headers.map(header => {
-    if (header === ID_COLUMN) return ""; 
+    if (header === ID_COLUMN) return nextId; 
     if (header === TIMESTAMP_COLUMN) {
-      // Guardamos como Date real para que quede igual que el resto de
-      // la planilla (el frontend manda un string ISO en "Marca temporal").
       return payload[header] ? new Date(payload[header]) : new Date();
     }
-    return payload[header] !== undefined ? payload[header] : "";
+      return payload[header] !== undefined ? payload[header] : "";
   });
 
   sheet.appendRow(newRow);
