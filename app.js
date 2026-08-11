@@ -11,10 +11,6 @@ let ticketsData = [];
 let activeTab = "activos";      
 let charts = {};                
 
-// hasUnsavedChanges: null = todavía no lo sabemos (antes de la primera carga).
-let backupInfo = { lastBackupAt: null, hasUnsavedChanges: null };
-let pendingAdminAction = null; // "backup" | "restore", mientras el modal está abierto
-
 const searchTerm = { activos: "", archivados: "" };
 const priorityFilter = { activos: "todas", archivados: "todas" };
 
@@ -33,8 +29,6 @@ async function init() {
   setupThemeToggle();
   document.getElementById("refreshBtn").addEventListener("click", () => loadTickets());
   document.getElementById("newTicketForm").addEventListener("submit", handleNewTicketSubmit);
-  setupBackupControls();
-  renderBackupStatus();
 
   if (CONFIG.API_URL === PLACEHOLDER_URL) {
     showToast("Configurá CONFIG.API_URL en app.js con la URL de tu Apps Script.", "error");
@@ -58,12 +52,7 @@ async function loadTickets() {
     if (!res.ok) throw new Error("Error HTTP " + res.status);
     const data = await res.json();
     ticketsData = Array.isArray(data) ? data : Array.isArray(data.data) ? data.data : [];
-    if (data && !Array.isArray(data)) {
-      backupInfo.lastBackupAt = data.lastBackupAt || null;
-      backupInfo.hasUnsavedChanges = typeof data.hasUnsavedChanges === "boolean" ? data.hasUnsavedChanges : null;
-    }
     renderAll();
-    renderBackupStatus();
     setLastSync();
     showToast("Tickets actualizados", "success");
   } catch (err) {
@@ -299,8 +288,6 @@ async function updateTicketField(nrCliente, changes, options = {}) {
 
   try {
     await postToApi({ action: "update", Nr_Cliente: nrCliente, ...changes });
-    backupInfo.hasUnsavedChanges = true;
-    renderBackupStatus();
     showToast("Cambios guardados", "success");
   } catch (err) {
     console.error("Error al actualizar ticket:", err);
@@ -308,7 +295,7 @@ async function updateTicketField(nrCliente, changes, options = {}) {
     renderTickets("activos");
     renderTickets("archivados");
     updateSidebarBadge();
-    showToast(err.message || "No se pudo guardar el cambio. Se revirtió localmente.", "error");
+    showToast("No se pudo guardar el cambio. Se revirtió localmente.", "error");
   }
 }
 
@@ -377,8 +364,6 @@ async function handleNewTicketSubmit(e) {
     await postToApi(nuevoTicket);
     form.reset();
     document.getElementById("fPrioridad").value = "Media";
-    backupInfo.hasUnsavedChanges = true;
-    renderBackupStatus();
     showToast("Ticket creado con éxito", "success");
     // Volvemos a pedir los datos: así el Nr_Cliente que asigna la planilla
     // queda sincronizado (evita conflictos de ID generados en el cliente).
@@ -386,7 +371,7 @@ async function handleNewTicketSubmit(e) {
     switchTab("activos");
   } catch (err) {
     console.error("Error al crear ticket:", err);
-    showToast(err.message || "No se pudo crear el ticket. Intentá nuevamente.", "error");
+    showToast("No se pudo crear el ticket. Intentá nuevamente.", "error");
   } finally {
     submitBtn.disabled = false;
     showLoading(false);
@@ -531,131 +516,6 @@ function setupThemeToggle() {
     document.getElementById("themeLabel").textContent = theme === "dark" ? "Modo oscuro" : "Modo claro";
     if (ticketsData.length > 0) renderCharts(); // recalcula colores de leyenda para el nuevo tema
   });
-}
-
-/* ==========================================================================
-   RESGUARDO / RESTAURACIÓN
-   --------------------------------------------------------------------------
-   "Resguardar" guarda una copia completa de los datos actuales en el
-   servidor. "Restaurar" reemplaza los datos actuales por esa copia. Ambas
-   acciones requieren la clave de administrador (se valida en el servidor,
-   nunca solo en el navegador). El indicador de estado le muestra a quien
-   administra el sitio si hay cambios desde el último resguardo.
-   ========================================================================== */
-function setupBackupControls() {
-  document.getElementById("backupBtn").addEventListener("click", () => openAdminModal("backup"));
-  document.getElementById("restoreBtn").addEventListener("click", () => openAdminModal("restore"));
-  document.getElementById("adminModalCancel").addEventListener("click", () => toggleAdminModal(false));
-  document.getElementById("adminModalConfirm").addEventListener("click", handleAdminModalConfirm);
-
-  // Cerrar el modal haciendo click fuera de la tarjeta, o con Escape.
-  document.getElementById("adminModal").addEventListener("click", (e) => {
-    if (e.target.id === "adminModal") toggleAdminModal(false);
-  });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") toggleAdminModal(false);
-  });
-}
-
-function openAdminModal(action) {
-  pendingAdminAction = action;
-  const isBackup = action === "backup";
-
-  document.getElementById("adminModalTitle").textContent = isBackup
-    ? "Resguardar base de datos"
-    : "Restaurar último resguardo";
-
-  document.getElementById("adminModalDesc").textContent = isBackup
-    ? "Se va a guardar una copia completa de los datos actuales. Necesitás la clave de administrador."
-    : "Esto reemplaza TODOS los datos actuales por los del último resguardo guardado. No se puede deshacer. Necesitás la clave de administrador.";
-
-  const input = document.getElementById("adminPassInput");
-  input.value = sessionStorage.getItem("adminSecret") || "";
-  toggleAdminModal(true);
-  input.focus();
-}
-
-function toggleAdminModal(show) {
-  const modal = document.getElementById("adminModal");
-  modal.classList.toggle("visible", show);
-  modal.setAttribute("aria-hidden", String(!show));
-  if (!show) pendingAdminAction = null;
-}
-
-async function handleAdminModalConfirm() {
-  const secret = document.getElementById("adminPassInput").value.trim();
-  if (!secret) {
-    showToast("Ingresá la clave de administrador.", "error");
-    return;
-  }
-
-  // Conveniencia dentro de la sesión del navegador para no retipearla en
-  // cada acción; se borra sola al cerrar la pestaña. Nunca se guarda en
-  // el código ni se envía a nadie salvo al propio Apps Script.
-  sessionStorage.setItem("adminSecret", secret);
-
-  const action = pendingAdminAction;
-  toggleAdminModal(false);
-
-  if (action === "backup") await runBackup(secret);
-  if (action === "restore") await runRestore(secret);
-}
-
-async function runBackup(secret) {
-  showLoading(true, "Creando resguardo…");
-  try {
-    const result = await postToApi({ action: "backup", adminSecret: secret });
-    backupInfo.hasUnsavedChanges = false;
-    backupInfo.lastBackupAt = result.lastBackupAt || new Date().toISOString();
-    renderBackupStatus();
-    showToast("Resguardo creado con éxito", "success");
-  } catch (err) {
-    console.error("Error al crear el resguardo:", err);
-    showToast(adminErrorMessage(err, "No se pudo crear el resguardo."), "error");
-  } finally {
-    showLoading(false);
-  }
-}
-
-async function runRestore(secret) {
-  showLoading(true, "Restaurando último resguardo…");
-  try {
-    await postToApi({ action: "restore", adminSecret: secret });
-    await loadTickets();
-    showToast("Datos restaurados desde el último resguardo", "success");
-  } catch (err) {
-    console.error("Error al restaurar:", err);
-    showToast(adminErrorMessage(err, "No se pudo restaurar el resguardo."), "error");
-  } finally {
-    showLoading(false);
-  }
-}
-
-function adminErrorMessage(err, fallback) {
-  if (err && err.message === "No autorizado") return "Clave de administrador incorrecta.";
-  return (err && err.message) || fallback;
-}
-
-function renderBackupStatus() {
-  const dot = document.getElementById("backupStatusDot");
-  const label = document.getElementById("backupStatusLabel");
-  const time = document.getElementById("backupStatusTime");
-  if (!dot) return;
-
-  if (backupInfo.hasUnsavedChanges === null) {
-    dot.className = "status-dot";
-    label.textContent = "Verificando resguardo…";
-  } else if (backupInfo.hasUnsavedChanges) {
-    dot.className = "status-dot status-dot-warning";
-    label.textContent = "Hay cambios sin resguardar";
-  } else {
-    dot.className = "status-dot status-dot-success";
-    label.textContent = "Todo resguardado";
-  }
-
-  time.textContent = backupInfo.lastBackupAt
-    ? "Último resguardo: " + formatDate(backupInfo.lastBackupAt)
-    : "Todavía no hay ningún resguardo";
 }
 
 /* ==========================================================================
