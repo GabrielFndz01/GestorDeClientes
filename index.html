@@ -90,6 +90,24 @@
           <span id="themeLabel">Modo oscuro</span>
         </div>
 
+        <div class="backup-section">
+          <div class="backup-status" id="backupStatus">
+            <span class="status-dot" id="backupStatusDot" aria-hidden="true"></span>
+            <div class="backup-status-text">
+              <span id="backupStatusLabel">Verificando resguardo…</span>
+              <span class="backup-status-time" id="backupStatusTime"></span>
+            </div>
+          </div>
+          <div class="backup-actions">
+            <button id="backupBtn" class="btn-ghost" type="button" title="Guarda una copia completa de los datos actuales">
+              <span aria-hidden="true">🛡</span><span>Resguardar datos</span>
+            </button>
+            <button id="restoreBtn" class="btn-ghost btn-ghost-danger" type="button" title="Reemplaza los datos actuales por el último resguardo guardado">
+              <span aria-hidden="true">⟲</span><span>Restaurar resguardo</span>
+            </button>
+          </div>
+        </div>
+
         <p class="last-sync" id="lastSync">Sin sincronizar</p>
       </div>
     </aside>
@@ -224,6 +242,22 @@
       </section>
 
     </main>
+  </div>
+
+  <!-- Modal de administración (backup / restore) -->
+  <div id="adminModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+      <h3 id="adminModalTitle">Acción administrativa</h3>
+      <p id="adminModalDesc"></p>
+      <div class="form-field">
+        <label for="adminPassInput">Clave de administrador</label>
+        <input type="password" id="adminPassInput" autocomplete="off" />
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn-ghost" id="adminModalCancel">Cancelar</button>
+        <button type="button" class="btn-primary" id="adminModalConfirm">Confirmar</button>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
