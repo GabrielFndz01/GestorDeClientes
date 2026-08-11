@@ -340,16 +340,13 @@ async function postToApi(payload) {
   }
   const res = await fetch(CONFIG.API_URL, {
     method: "POST",
-    // text/plain evita el preflight CORS que los Web Apps de Apps Script no manejan bien
     headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error("Error HTTP " + res.status);
 
   const result = await res.json().catch(() => ({}));
-  // Apps Script casi siempre responde HTTP 200 aunque el script haya
-  // manejado un error internamente (ticket no encontrado, columna
-  // faltante, etc.), así que el éxito real se valida en el body.
+
   if (result && result.success === false) {
     throw new Error(result.error || "La API respondió con un error");
   }
@@ -414,9 +411,6 @@ async function handleNewTicketSubmit(e) {
 
 /* ==========================================================================
    ANALÍTICAS (Pestaña 3) — Chart.js
-   Los gráficos se crean recién cuando se visita la pestaña, porque
-   Chart.js mide el tamaño del <canvas> y un contenedor con display:none
-   reporta ancho 0 (bug clásico de charts dentro de tabs ocultas).
    ========================================================================== */
 function renderCharts() {
   const hasData = ticketsData.length > 0;
