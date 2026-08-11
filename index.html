@@ -183,6 +183,30 @@
               <p class="chart-empty" id="emptyCarga" hidden>Todavía no hay tickets para graficar.</p>
             </div>
           </div>
+          <div class="chart-card">
+            <h3>Carga crítica por prioridad</h3>
+            <div class="chart-canvas-wrap">
+              <canvas id="chartPrioridad"></canvas>
+              <p class="chart-empty" id="emptyPrioridad" hidden>No hay tickets activos para mostrar.</p>
+            </div>
+          </div>
+          <div class="chart-card analytics-summary-card">
+            <h3>Tiempo promedio de resolución</h3>
+            <div class="metric-value-wrap">
+              <p class="metric-value" id="avgResolutionValue">—</p>
+              <p class="metric-caption">Promedio estimado desde la creación hasta el archivado</p>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h3>Top clientes recurrentes</h3>
+            <ul class="analytics-list" id="topClientsList"></ul>
+            <p class="chart-empty" id="emptyTopClients" hidden>No hay clientes con repetición de teléfono.</p>
+          </div>
+          <div class="chart-card">
+            <h3>Dispositivos más comunes</h3>
+            <ul class="analytics-list" id="topDevicesList"></ul>
+            <p class="chart-empty" id="emptyTopDevices" hidden>No hay dispositivos registrados.</p>
+          </div>
         </div>
       </section>
 

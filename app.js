@@ -16,6 +16,7 @@ const priorityFilter = { activos: "todas", archivados: "todas" };
 const sortOrder = { activos: "fecha", archivados: "fecha" };
 
 const CHART_PALETTE = ["#4fd1c5", "#f0554b", "#f2b84b", "#4cc38a", "#7c93ff", "#d473d4", "#5ac8d8", "#e39b4f", "#9aa5b1"];
+const PRIORITY_ORDER = ["Alta", "Media", "Baja"];
 
 /* ==========================================================================
    INICIALIZACIÓN
@@ -341,7 +342,17 @@ async function updateTicketField(nrCliente, changes, options = {}) {
   if (idx === -1) return;
 
   const previous = { ...ticketsData[idx] };
-  ticketsData[idx] = { ...ticketsData[idx], ...changes };
+  const changesToSave = { ...changes };
+
+  if (Object.prototype.hasOwnProperty.call(changesToSave, "Archivado")) {
+    if (changesToSave.Archivado === true) {
+      changesToSave.FechaArchivado = changesToSave.FechaArchivado || new Date().toISOString();
+    } else {
+      changesToSave.FechaArchivado = "";
+    }
+  }
+
+  ticketsData[idx] = { ...ticketsData[idx], ...changesToSave };
 
   if (!options.skipRerender) {
     renderTickets(activeTab === "archivados" ? "archivados" : "activos");
@@ -352,7 +363,7 @@ async function updateTicketField(nrCliente, changes, options = {}) {
   updateSidebarBadge();
 
   try {
-    await postToApi({ action: "update", Nr_Cliente: nrCliente, ...changes });
+    await postToApi({ action: "update", Nr_Cliente: nrCliente, ...changesToSave });
     showToast("Cambios guardados", "success");
   } catch (err) {
     console.error("Error al actualizar ticket:", err);
@@ -414,6 +425,7 @@ async function handleNewTicketSubmit(e) {
     Estado: false,
     Archivado: false,
     Diagnostico: "",
+    FechaArchivado: "",
     "Marca temporal": new Date().toISOString(),
   };
 
@@ -444,23 +456,30 @@ async function handleNewTicketSubmit(e) {
    ========================================================================== */
 function renderCharts() {
   const hasData = ticketsData.length > 0;
+  const activos = ticketsData.filter((t) => !t.Archivado);
+  const hasActiveTickets = activos.length > 0;
 
   toggleChartEmpty("emptyLocalidades", "chartLocalidades", !hasData);
   toggleChartEmpty("emptyArchivadosChart", "chartArchivados", !hasData);
   toggleChartEmpty("emptyCarga", "chartCarga", !hasData);
+  toggleChartEmpty("emptyPrioridad", "chartPrioridad", !hasActiveTickets);
 
-  if (!hasData) return;
+  if (!hasData) {
+    renderAverageResolution("—");
+    renderTopList("topClientsList", "emptyTopClients", []);
+    renderTopDevicesList([]);
+    return;
+  }
 
   const localidadCounts = countBy(ticketsData, "Localidad");
   renderPieChart("chartLocalidades", "localidades", localidadCounts);
 
   const archivadoCounts = {
-    Activos: ticketsData.filter((t) => !t.Archivado).length,
+    Activos: activos.length,
     Archivados: ticketsData.filter((t) => t.Archivado).length,
   };
   renderPieChart("chartArchivados", "archivados", archivadoCounts);
 
-  const activos = ticketsData.filter((t) => !t.Archivado);
   const inicioSemana = getStartOfWeek(new Date());
   const nuevosEstaSemana = activos.filter((t) => {
     const d = new Date(t["Marca temporal"]);
@@ -472,6 +491,16 @@ function renderCharts() {
     "Nuevos esta semana": nuevosEstaSemana,
     "Resueltos (cerrados)": cerrados,
   });
+
+  const priorityCounts = PRIORITY_ORDER.reduce((acc, prio) => {
+    acc[prio] = activos.filter((t) => t.Prioridad === prio).length;
+    return acc;
+  }, {});
+  renderPriorityChart("chartPrioridad", "prioridad", priorityCounts);
+
+  renderAverageResolution(getAverageResolutionDays());
+  renderTopClientsList(getTopClients());
+  renderTopDevicesList(getTopDevices());
 }
 
 function toggleChartEmpty(emptyId, canvasId, show) {
@@ -543,6 +572,156 @@ function renderDonutChart(canvasId, key, dataObj) {
     },
     options: { ...baseChartOptions(), cutout: "62%" },
   });
+}
+
+function renderPriorityChart(canvasId, key, dataObj) {
+  destroyChart(key);
+  const canvas = document.getElementById(canvasId);
+  charts[key] = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels: Object.keys(dataObj),
+      datasets: [
+        {
+          data: Object.values(dataObj),
+          backgroundColor: [CHART_PALETTE[1], CHART_PALETTE[2], CHART_PALETTE[3]],
+          borderRadius: 8,
+        },
+      ],
+    },
+    options: {
+      ...baseChartOptions(),
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { color: cssVar("--text-secondary", "#8fa0a8") },
+          grid: { color: cssVar("--border-subtle", "#1f282e") },
+        },
+        x: {
+          ticks: { color: cssVar("--text-secondary", "#8fa0a8") },
+          grid: { display: false },
+        },
+      },
+    },
+  });
+}
+
+function renderAverageResolution(value) {
+  const el = document.getElementById("avgResolutionValue");
+  if (!el) return;
+  el.textContent = value === "—" ? "—" : `${value} días`;
+}
+
+function renderTopClientsList(items) {
+  const listEl = document.getElementById("topClientsList");
+  const emptyEl = document.getElementById("emptyTopClients");
+  if (!listEl) return;
+
+  if (!items.length) {
+    listEl.innerHTML = "";
+    if (emptyEl) emptyEl.hidden = false;
+    return;
+  }
+
+  if (emptyEl) emptyEl.hidden = true;
+  listEl.innerHTML = items
+    .slice(0, 5)
+    .map((item) => `
+      <li>
+        <div>
+          <strong>${escapeHtml(item.label)}</strong>
+          <span>${escapeHtml(item.phone)}</span>
+        </div>
+        <span class="analytics-pill">${item.count} tickets</span>
+      </li>
+    `)
+    .join("");
+}
+
+function renderTopDevicesList(items) {
+  const listEl = document.getElementById("topDevicesList");
+  const emptyEl = document.getElementById("emptyTopDevices");
+  if (!listEl) return;
+
+  if (!items.length) {
+    listEl.innerHTML = "";
+    if (emptyEl) emptyEl.hidden = false;
+    return;
+  }
+
+  if (emptyEl) emptyEl.hidden = true;
+  listEl.innerHTML = items
+    .slice(0, 5)
+    .map((item) => `
+      <li>
+        <strong>${escapeHtml(item.label)}</strong>
+        <span class="analytics-pill">${item.count}</span>
+      </li>
+    `)
+    .join("");
+}
+
+function getAverageResolutionDays() {
+  const archived = ticketsData.filter((t) => Boolean(t.Archivado));
+  const values = archived
+    .map((t) => {
+      const createdAt = new Date(t["Marca temporal"]);
+      const archivedAt = t.FechaArchivado ? new Date(t.FechaArchivado) : null;
+      if (isNaN(createdAt)) return null;
+      const end = archivedAt && !isNaN(archivedAt) ? archivedAt : new Date();
+      const diffDays = (end - createdAt) / (1000 * 60 * 60 * 24);
+      return Number.isFinite(diffDays) ? diffDays : null;
+    })
+    .filter((value) => value !== null);
+
+  if (!values.length) return "—";
+  const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
+  return avg.toFixed(1);
+}
+
+function getTopClients() {
+  const map = ticketsData.reduce((acc, ticket) => {
+    const phone = normalizePhone(ticket["Teléfono (WhatsApp)"] || "");
+    if (!phone) return acc;
+
+    const label = [ticket.Nombre, ticket.Apellido].filter(Boolean).join(" ").trim() || phone;
+    if (!acc[phone]) {
+      acc[phone] = { phone, label, count: 0 };
+    }
+    acc[phone].count += 1;
+    return acc;
+  }, {});
+
+  return Object.values(map).sort((a, b) => b.count - a.count);
+}
+
+function getTopDevices() {
+  const tokenCounts = ticketsData.reduce((acc, ticket) => {
+    const raw = ticket.Dispositivo || "";
+    const tokens = tokenizeDevice(raw);
+    tokens.forEach((token) => {
+      acc[token] = (acc[token] || 0) + 1;
+    });
+    return acc;
+  }, {});
+
+  return Object.entries(tokenCounts)
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+function normalizePhone(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
+function tokenizeDevice(value) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[^\w\s]/g, " ")
+    .split(/\s+/)
+    .filter((token) => token.length > 2 && !["y", "de", "la", "el", "con", "para", "del", "por"].includes(token))
+    .map((token) => token.charAt(0).toUpperCase() + token.slice(1));
 }
 
 function countBy(list, key) {
