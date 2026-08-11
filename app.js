@@ -13,6 +13,7 @@ let charts = {};
 
 const searchTerm = { activos: "", archivados: "" };
 const priorityFilter = { activos: "todas", archivados: "todas" };
+const sortOrder = { activos: "fecha", archivados: "fecha" };
 
 const CHART_PALETTE = ["#4fd1c5", "#f0554b", "#f2b84b", "#4cc38a", "#7c93ff", "#d473d4", "#5ac8d8", "#e39b4f", "#9aa5b1"];
 
@@ -149,6 +150,14 @@ function setupToolbars() {
     renderTickets("activos");
   });
 
+  const sortActivos = document.getElementById("sortActivos");
+  if (sortActivos) {
+    sortActivos.addEventListener("change", (e) => {
+      sortOrder.activos = e.target.value;
+      renderTickets("activos");
+    });
+  }
+
   document.getElementById("searchArchivados").addEventListener(
     "input",
     debounce((e) => {
@@ -160,6 +169,13 @@ function setupToolbars() {
     priorityFilter.archivados = e.target.value;
     renderTickets("archivados");
   });
+  const sortArchivados = document.getElementById("sortArchivados");
+  if (sortArchivados) {
+    sortArchivados.addEventListener("change", (e) => {
+      sortOrder.archivados = e.target.value;
+      renderTickets("archivados");
+    });
+  }
 }
 
 /* ==========================================================================
@@ -184,7 +200,13 @@ function renderTickets(tab) {
     list = list.filter((t) => t.Prioridad === priority);
   }
 
-  list.sort((a, b) => new Date(b["Marca temporal"]) - new Date(a["Marca temporal"]));
+  if (sortOrder[tab] === "nr_asc") {
+    list.sort((a, b) => Number(a.Nr_Cliente) - Number(b.Nr_Cliente));
+  } else if (sortOrder[tab] === "nr_desc") {
+    list.sort((a, b) => Number(b.Nr_Cliente) - Number(a.Nr_Cliente));
+  } else {
+    list.sort((a, b) => new Date(b["Marca temporal"]) - new Date(a["Marca temporal"]));
+  }
 
   if (!isArchived) {
     const pendientes = list.filter((t) => !t.Estado).length;
