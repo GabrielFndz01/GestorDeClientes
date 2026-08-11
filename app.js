@@ -178,7 +178,12 @@ function renderTickets(tab) {
 
   list.sort((a, b) => new Date(b["Marca temporal"]) - new Date(a["Marca temporal"]));
 
-  countEl.textContent = `${list.length} ticket${list.length === 1 ? "" : "s"}`;
+  if (!isArchived) {
+    const pendientes = list.filter((t) => !t.Estado).length;
+    countEl.textContent = `${list.length} no archivados (${pendientes} pendientes)`;
+  } else {
+    countEl.textContent = `${list.length} ticket${list.length === 1 ? "" : "s"}`;
+  }
 
   gridEl.innerHTML = list.length === 0 ? emptyStateHtml(isArchived, Boolean(search) || priority !== "todas") : list.map((t) => ticketCardHtml(t, isArchived)).join("");
 }
@@ -352,12 +357,11 @@ async function postToApi(payload) {
 }
 
 function updateSidebarBadge() {
-  const pendientes = ticketsData.filter((t) => !t.Archivado && !t.Estado).length;
+  const noArchivados = ticketsData.filter((t) => !t.Archivado).length;
   const badge = document.getElementById("badgeActivos");
-  badge.textContent = pendientes;
-  badge.style.display = pendientes > 0 ? "inline-flex" : "none";
+  badge.textContent = noArchivados;
+  badge.style.display = noArchivados > 0 ? "inline-flex" : "none";
 }
-
 /* ==========================================================================
    NUEVO TICKET (Pestaña 4)
    ========================================================================== */
