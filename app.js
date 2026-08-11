@@ -27,8 +27,13 @@ async function init() {
   setupGridListeners("gridActivos");
   setupGridListeners("gridArchivados");
   setupThemeToggle();
+  
   document.getElementById("refreshBtn").addEventListener("click", () => loadTickets());
   document.getElementById("newTicketForm").addEventListener("submit", handleNewTicketSubmit);
+  
+  // NUEVO: Listener para el botón de restaurar
+  const restoreBtn = document.getElementById("restoreBtn");
+  if(restoreBtn) restoreBtn.addEventListener("click", handleRestoreDemo);
 
   if (CONFIG.API_URL === PLACEHOLDER_URL) {
     showToast("Configurá CONFIG.API_URL en app.js con la URL de tu Apps Script.", "error");
@@ -69,6 +74,31 @@ function renderAll() {
   renderTickets("archivados");
   updateSidebarBadge();
   if (activeTab === "analiticas") renderCharts();
+}
+
+/* ==========================================================================
+   RESTAURAR DEMO
+   ========================================================================== */
+async function handleRestoreDemo() {
+  // Confirmación por seguridad antes de borrar
+  const confirmacion = confirm("¿Estás seguro de que querés restaurar los datos a la versión original de demostración? Se perderán todos los cambios actuales.");
+  if (!confirmacion) return;
+
+  showLoading(true, "Restaurando base de datos original…");
+  try {
+    const result = await postToApi({ action: "restore" });
+    if (result.success) {
+      showToast("Datos restaurados a la versión original", "success");
+      // Volvemos a solicitar los datos al backend para refrescar la interfaz
+      await loadTickets();
+      switchTab("activos"); // Te devuelve a la pantalla inicial
+    }
+  } catch (err) {
+    console.error("Error al restaurar:", err);
+    showToast("No se pudo restaurar la versión original. Verificá tu Apps Script.", "error");
+  } finally {
+    showLoading(false);
+  }
 }
 
 /* ==========================================================================
