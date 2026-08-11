@@ -197,7 +197,11 @@
             </div>
             <div class="form-field">
               <label for="fLocalidad">Localidad</label>
-              <input id="fLocalidad" name="localidad" type="text" required />
+              <select id="fLocalidad" name="localidad" required>
+                <option value="" disabled selected>Seleccioná una opción...</option>
+                <option value="CABA">CABA</option>
+                <option value="GBA">GBA</option>
+              </select>
             </div>
             <div class="form-field">
               <label for="fTelefono">Teléfono (WhatsApp)</label>
