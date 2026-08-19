@@ -1,63 +1,59 @@
-# Centro de Soporte · Gestor de Tickets
+# 🛠️ Centro de Soporte - Gestor de Tickets Técnicos
 
-Aplicación web para gestionar tickets de soporte técnico (clientes, dispositivos, prioridad, diagnóstico), usando **Google Sheets como base de datos** a través de **Google Apps Script** como API.
+Un sistema de gestión de clientes y tickets diseñado específicamente para técnicos de soporte freelance. Permite organizar, visualizar y administrar las reparaciones de manera eficiente utilizando herramientas accesibles y gratuitas.
 
-## Stack
+---
 
-- **Frontend:** HTML, CSS y JavaScript sin frameworks. Chart.js para las analíticas.
-- **Backend:** Google Apps Script, publicado como Web App (`doGet` / `doPost`).
-- **Base de datos:** Google Sheets.
+## 📝 Descripción
 
-## Arquitectura
+Este proyecto nació de la necesidad de organizar el flujo de trabajo de un técnico independiente. Utiliza **Google Sheets** como base de datos principal, permitiendo el ingreso de solicitudes a través de **Google Forms** (ideal para que los clientes se autogestionen) o directamente desde una interfaz web amigable. La comunicación entre el frontend y la base de datos se realiza a través de una API construida con **Google Apps Script**.
 
-```
-index.html / styles.css / app.js  →  fetch()  →  Apps Script Web App  →  Google Sheets
-```
+## ✨ Características Principales
 
-El frontend nunca accede a la planilla directamente: todo pasa por el Web App de Apps Script, que expone cuatro acciones vía `doPost`:
+*   **Gestión Integral de Tickets**: Visualiza todos los tickets activos, asigna prioridades (Alta, Media, Baja), añade diagnósticos y marca su estado (Pendiente / Resuelto).
+*   **Ingreso Multicanal**:
+    *   *Google Forms*: Enlace público para que los clientes registren sus problemas de forma autónoma.
+    *   *Panel Web*: Formulario integrado para que el técnico cargue tickets rápidamente sin salir de la plataforma.
+*   **Sistema de Archivado**: Limpia tu vista principal archivando los tickets resueltos
+*   **Dashboard de Analíticas**: Toma decisiones informadas con gráficos interactivos:
+    *   Distribución de clientes por localidad (ej. CABA vs GBA).
+    *   Proporción de tickets activos vs. archivados.
+    *   Carga semanal de tickets no archivados.
+    *   Nivel crítico de carga por prioridad.
+    *   Métricas clave: Tiempo promedio de resolución, Top de clientes recurrentes y Dispositivos más comunes.
+*   **Modo Demo Integrado**: Incluye una función de "Restaurar original" que permite a los visitantes del repositorio probar la aplicación, modificar datos y revertir los cambios fácilmente.
+*   **Modo Oscuro**: Interfaz cuidada con soporte para *dark mode*.
 
-| Acción     | Qué hace                                             | Requiere clave admin |
-|------------|-------------------------------------------------------|:---:|
-| `create`   | Crea un ticket nuevo                                   | No |
-| `update`   | Actualiza campos de un ticket existente                | No |
-| `backup`   | Guarda una copia completa de los datos actuales         | Sí |
-| `restore`  | Reemplaza los datos actuales por el último resguardo    | Sí |
+## 💻 Tecnologías Utilizadas
 
-`doGet` devuelve todos los tickets más el estado del resguardo (`lastBackupAt`, `hasUnsavedChanges`).
+*   **Frontend**: HTML5, CSS3, Vanilla JavaScript.
+*   **Backend & API**: Google Apps Script.
+*   **Base de Datos**: Google Sheets.
+*   **Ingreso de Datos Externo**: Google Forms.
 
-## Configuración
+## 📸 Capturas de Pantalla
 
-1. Creá la planilla con una hoja llamada `Registro_Clientes` con estas columnas en la primera fila: `Nr_Cliente`, `Marca temporal`, `Nombre`, `Apellido`, `Localidad`, `Teléfono (WhatsApp)`, `Dispositivo`, `Prioridad`, `Estado`, `Archivado`, `Diagnostico`, `Detalles de la consulta`. `Code.gs` lee los encabezados de forma dinámica, así que si agregás o renombrás columnas no hace falta tocar el backend.
-2. Pegá el contenido de `Code.gs` en el editor de Apps Script de esa planilla (Extensiones → Apps Script).
-3. Configurá la clave de administrador (una única vez):
-   - Editor de Apps Script → ícono de engranaje **Configuración del proyecto**.
-   - **Propiedades del script** → **Añadir propiedad del script**.
-   - Nombre: `ADMIN_SECRET` — Valor: una clave larga y aleatoria (guardala en un gestor de contraseñas, no en el código).
-4. Implementar → Nueva implementación → Aplicación web. Ejecutar como "Yo", acceso "Cualquier usuario".
-5. Copiá la URL que te da Apps Script y pegala en `CONFIG.API_URL` dentro de `app.js`.
+### Panel de Tickets Activos
+![Tickets Activos](./TicketsActivos.png)
 
-## Resguardo y restauración de datos
+### Dashboard de Analíticas
+![Analíticas](./Analiticas.png)
 
-Como la app queda expuesta públicamente, cualquier visitante puede crear o editar tickets. Para que eso no ponga en riesgo los datos reales, el sistema tiene varias capas:
+### Carga de Nuevo Ticket
+![Nuevo Ticket](./Formweb.png)
 
-1. **Resguardo manual:** el botón "Resguardar datos" (sidebar, solo visible en escritorio) guarda una copia completa de la planilla en una hoja oculta (`Respaldo`). El botón "Restaurar resguardo" reemplaza los datos actuales por esa copia.
-2. **Indicador de estado:** un punto de color en el sidebar muestra si hay cambios sin resguardar desde el último backup (🟠) o si todo está al día (🟢), calculado en el servidor comparando un hash de los datos actuales contra el del último resguardo.
-3. **Clave de administrador:** `backup` y `restore` piden una clave que se valida en el servidor (Script Properties), nunca queda escrita en el código público. Sin esa propiedad configurada, ambas acciones quedan deshabilitadas por defecto.
-4. **Límite de filas:** `create` deja de aceptar tickets nuevos por encima de `MAX_ROWS` (500 por defecto), para que un script no llene la planilla de basura.
-5. **Límite de solicitudes:** un tope simple de escrituras por minuto (compartido entre todos los visitantes) frena scripts que golpeen la API en loop.
-6. **Saneamiento de datos:** cualquier valor de texto que empiece con `=`, `+`, `-` o `@` se guarda como texto plano, para evitar inyección de fórmulas en la planilla.
-7. **Historial de versiones de Google Sheets:** además de todo lo anterior, Archivo → Historial de versiones en la planilla guarda automáticamente versiones anteriores sin necesidad de código — es una red de seguridad extra, gratis.
+### Base de Datos y Formulario
+![Base de Datos](./GoogleSheet.jpg)
+![Google Forms](./GoogleForm.png)
 
-### Qué NO resuelve este esquema
+## 🚀 Instalación y Configuración
 
-- **La clave de administrador no es infalible.** Es un `prompt` de texto validado en el servidor: suficiente para un proyecto de portfolio, pero no equivalente a un login real con OAuth. Si necesitás algo más robusto, la vía correcta es restringir el acceso con cuentas de Google (Apps Script lo soporta con `Session.getActiveUser()` cuando el acceso no es "Cualquier usuario").
-- **La lectura (`doGet`) sigue siendo pública.** Cualquiera con la URL puede ver todos los tickets. Si la planilla tiene datos reales de clientes (nombres, teléfonos), **no publiques ese link con datos reales** — usá datos ficticios para la demo, o agregá autenticación antes de exponerlo.
-
-## Estructura de archivos
-
-```
-index.html    → estructura de la página
-styles.css    → estilos (sistema de variables CSS, tema claro/oscuro)
-app.js        → lógica de la aplicación
-Code.gs       → backend (Apps Script), se pega en el editor de la planilla
-```
+1.  Clona este repositorio:
+    ```bash
+    git clone https://github.com/tu-usuario/tu-repositorio.git
+    ```
+2.  Crea un nuevo documento de **Google Sheets** y un **Google Forms** vinculado.
+3.  En tu Google Sheets, ve a `Extensiones > Apps Script`. Copia y pega el código de backend (incluido en este repositorio) y despliégalo como una **Aplicación Web** (asegúrate de dar permisos de acceso a "Cualquier persona").
+4.  Copia la URL proporcionada por Apps Script.
+5.  Reemplaza la URL de la API en el archivo JavaScript de tu frontend con la nueva URL obtenida.
+6.  ¡Abre el archivo `index.html` (o súbelo a un hosting gratuito) y comienza a gestionar tus tickets!
