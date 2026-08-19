@@ -1,5 +1,5 @@
 const SHEET_NAME = "Registro_Clientes";
-const DEMO_SHEET_NAME = "Registro_Clientes_Demo"; // La nueva hoja
+const DEMO_SHEET_NAME = "Registro_Clientes_Demo"; 
 const ID_COLUMN = "Nr_Cliente";
 const TIMESTAMP_COLUMN = "Marca temporal";
 
