@@ -50,7 +50,7 @@ Este proyecto nació de la necesidad de organizar el flujo de trabajo de un téc
 
 1.  Clona este repositorio:
     ```bash
-    git clone https://github.com/tu-usuario/tu-repositorio.git
+    git clone https://github.com/GabrielFndz01/GestorDeClientes.git
     ```
 2.  Crea un nuevo documento de **Google Sheets** y un **Google Forms** vinculado.
 3.  En tu Google Sheets, ve a `Extensiones > Apps Script`. Copia y pega el código de backend (incluido en este repositorio) y despliégalo como una **Aplicación Web** (asegúrate de dar permisos de acceso a "Cualquier persona").
