@@ -43,7 +43,7 @@ Este proyecto nació de la necesidad de organizar el flujo de trabajo de un téc
 ![Nuevo Ticket](./assets/Formweb.png)
 
 ### Base de Datos y Formulario
-![Base de Datos](./assets/GoogleSheet.jpg)
+![Base de Datos](./assets/GoogleSheet.png)
 ![Google Forms](./assets/GoogleForm.png)
 
 ## 🚀 Instalación y Configuración
