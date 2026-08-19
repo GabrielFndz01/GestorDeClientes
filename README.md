@@ -34,17 +34,17 @@ Este proyecto nació de la necesidad de organizar el flujo de trabajo de un téc
 ## 📸 Capturas de Pantalla
 
 ### Panel de Tickets Activos
-![Tickets Activos](./TicketsActivos.png)
+![Tickets Activos](./assets/TicketsActivos.png)
 
 ### Dashboard de Analíticas
-![Analíticas](./Analiticas.png)
+![Analíticas](./assets/Analiticas.png)
 
 ### Carga de Nuevo Ticket
-![Nuevo Ticket](./Formweb.png)
+![Nuevo Ticket](./assets/Formweb.png)
 
 ### Base de Datos y Formulario
-![Base de Datos](./GoogleSheet.jpg)
-![Google Forms](./GoogleForm.png)
+![Base de Datos](./assets/GoogleSheet.jpg)
+![Google Forms](./assets/GoogleForm.png)
 
 ## 🚀 Instalación y Configuración
 
