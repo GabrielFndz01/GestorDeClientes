@@ -1,5 +1,4 @@
 const SHEET_NAME = "Registro_Clientes";
-const DEMO_SHEET_NAME = "Registro_Clientes_Demo"; 
 const ID_COLUMN = "Nr_Cliente";
 const TIMESTAMP_COLUMN = "Marca temporal";
 
@@ -29,31 +28,11 @@ function doPost(e) {
 
     if (payload.action === "update") return handleUpdate(sheet, payload);
     if (payload.action === "create") return handleCreate(sheet, payload);
-    if (payload.action === "restore") return handleRestore();
 
     return respond({ success: false, error: "Acción no reconocida: " + payload.action });
   } catch (err) {
     return respond({ success: false, error: String(err) });
   }
-}
-
-function handleRestore() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const activeSheet = ss.getSheetByName(SHEET_NAME);
-  const demoSheet = ss.getSheetByName(DEMO_SHEET_NAME);
-
-  if (!demoSheet) {
-    return respond({ success: false, error: "No se encontró la hoja de demo: " + DEMO_SHEET_NAME });
-  }
-
-  activeSheet.clear();
-
-  const demoData = demoSheet.getDataRange().getValues();
-  if (demoData.length > 0) {
-    activeSheet.getRange(1, 1, demoData.length, demoData[0].length).setValues(demoData);
-  }
-
-  return respond({ success: true, action: "restore" });
 }
 
 function handleUpdate(sheet, payload) {
