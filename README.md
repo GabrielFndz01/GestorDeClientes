@@ -39,10 +39,11 @@ El proceso se llevó a cabo utilizando las siguientes técnicas:
 ## ✨ Características Principales
 
 *   **Gestión Integral de Tickets**: Visualiza todos los tickets activos, asigna prioridades (Alta, Media, Baja), añade diagnósticos y marca su estado (Pendiente / Resuelto).
+*   **Búsqueda y Filtros Avanzados**: Encuentra rápidamente lo que necesitas mediante una barra de búsqueda integrada y opciones para filtrar o ordenar los tickets por prioridad, fecha de ingreso o número de ticket.
 *   **Ingreso Multicanal**:
     *   *Google Forms*: Enlace público para que los clientes registren sus problemas de forma autónoma.
     *   *Panel Web*: Formulario integrado para que el técnico cargue tickets rápidamente sin salir de la plataforma.
-*   **Sistema de Archivado**: Limpia tu vista principal archivando los tickets resueltos
+*   **Sistema de Archivado**: Limpia tu vista principal archivando los tickets resueltos, guardándolos en una pestaña separada para mantener el historial.
 *   **Dashboard de Analíticas**: Toma decisiones informadas con gráficos interactivos:
     *   Distribución de clientes por localidad (ej. CABA vs GBA).
     *   Proporción de tickets activos vs. archivados.
