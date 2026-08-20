@@ -4,9 +4,37 @@ Un sistema de gestión de clientes y tickets diseñado específicamente para té
 
 ---
 
+## 🚀 Demo en Vivo
+
+¡Prueba la aplicación funcional directamente desde tu navegador! 
+
+[![Ver Demo en Vercel](https://img.shields.io/badge/Vercel-Ver_Demo_en_Vivo-black?style=for-the-badge&logo=vercel)](https://gestor-de-clientes-pi.vercel.app)
+
+> **Nota:** La aplicación cuenta con un botón de **"Restaurar original"**. Puedes crear tickets, archivarlos y modificar estados libremente; la base de datos se puede reiniciar en cualquier momento.
+
+### 👁️ Detrás de escena: Base de Datos en Tiempo Real
+Para ver cómo funciona la integración completa, te invito a abrir la aplicación web en una ventana y la base de datos en otra. Al crear o modificar un ticket en la web, verás los cambios reflejados instantáneamente aquí:
+
+[📊 Ver Base de Datos en Google Sheets](https://docs.google.com/spreadsheets/d/1PnCUKULpaO1XOYcVdlJIQeMYROOvsQkQvZGQxUsYC2U/edit?usp=sharing) *(Modo Solo Lectura para proteger la estructura).*
+
 ## 📝 Descripción
 
 Este proyecto nació de la necesidad de organizar el flujo de trabajo de un técnico independiente. Utiliza **Google Sheets** como base de datos principal, permitiendo el ingreso de solicitudes a través de **Google Forms** (ideal para que los clientes se autogestionen) o directamente desde una interfaz web amigable. La comunicación entre el frontend y la base de datos se realiza a través de una API construida con **Google Apps Script**.
+
+## 📊 Generación del Dataset (Mock Data)
+
+Para simular un entorno de producción real y poder visualizar las métricas en el dashboard analítico desde el primer momento, se construyó un dataset ficticio directamente en Google Sheets. 
+
+En lugar de cargar datos manualmente, se automatizó la creación de los registros utilizando funciones nativas de hojas de cálculo, lo que permitió generar un volumen significativo de tickets con variabilidad realista.
+
+El proceso se llevó a cabo utilizando las siguientes técnicas:
+
+* **Asignación Aleatoria de Categorías:** Se utilizó la combinación de funciones `INDICE` y `ALEATORIO.ENTRE` (o `ELEGIR`) para poblar columnas categóricas. Por ejemplo, para la columna **Dispositivo**, la fórmula seleccionaba aleatoriamente de una lista predefinida (Ej: *MacBook Pro, Notebook HP, Xbox One, PS4*).
+* **Distribución de Localidades y Prioridades:** De manera similar, se automatizó la asignación de localidades (CABA, GBA) y niveles de prioridad (Alta, Media, Baja), asegurando una dispersión de datos que alimentara correctamente los gráficos de torta y barras en el frontend.
+* **Generación de Fechas:** Se simularon marcas temporales (*timestamps*) realistas para calcular la "Carga semanal" y el "Tiempo promedio de resolución", sumando o restando días aleatorios a una fecha base.
+* **Simulación de Clientes Recurrentes:** Para probar la métrica de "Top clientes recurrentes", se acotó el rango de nombres, apellidos y números de teléfono generados, forzando intencionalmente que ciertos perfiles aparecieran múltiples veces en el registro.
+
+> **Nota:** Una vez generados todos los datos dinámicos, se pegaron como "Solo valores" para congelar el dataset, evitar recálculos constantes en la hoja y asegurar que la conexión con la API de Google Apps Script fuera rápida y estable.
 
 ## ✨ Características Principales
 
@@ -34,17 +62,17 @@ Este proyecto nació de la necesidad de organizar el flujo de trabajo de un téc
 ## 📸 Capturas de Pantalla
 
 ### Panel de Tickets Activos
-![Tickets Activos](./TicketsActivos.png)
+![Tickets Activos](./assets/TicketsActivos.png)
 
 ### Dashboard de Analíticas
-![Analíticas](./Analiticas.png)
+![Analíticas](./assets/Analiticas.png)
 
 ### Carga de Nuevo Ticket
-![Nuevo Ticket](./Formweb.png)
+![Nuevo Ticket](./assets/Formweb.png)
 
 ### Base de Datos y Formulario
-![Base de Datos](./GoogleSheet.jpg)
-![Google Forms](./GoogleForm.png)
+![Base de Datos](./assets/GoogleSheet.png)
+![Google Forms](./assets/GoogleForm.png)
 
 ## 🚀 Instalación y Configuración
 
