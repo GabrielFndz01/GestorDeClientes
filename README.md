@@ -4,6 +4,19 @@ Un sistema de gestión de clientes y tickets diseñado específicamente para té
 
 ---
 
+## 🚀 Demo en Vivo
+
+¡Prueba la aplicación funcional directamente desde tu navegador! 
+
+[![Ver Demo en Vercel](https://img.shields.io/badge/Vercel-Ver_Demo_en_Vivo-black?style=for-the-badge&logo=vercel)](https://gestor-de-clientes-pi.vercel.app)
+
+> **Nota:** La aplicación cuenta con un botón de **"Restaurar original"**. Puedes crear tickets, archivarlos y modificar estados libremente; la base de datos se puede reiniciar en cualquier momento.
+
+### 👁️ Detrás de escena: Base de Datos en Tiempo Real
+Para ver cómo funciona la integración completa, te invito a abrir la aplicación web en una ventana y la base de datos en otra. Al crear o modificar un ticket en la web, verás los cambios reflejados instantáneamente aquí:
+
+[📊 Ver Base de Datos en Google Sheets](https://docs.google.com/spreadsheets/d/1PnCUKULpaO1XOYcVdlJIQeMYROOvsQkQvZGQxUsYC2U/edit?usp=sharing) *(Modo Solo Lectura para proteger la estructura).*
+
 ## 📝 Descripción
 
 Este proyecto nació de la necesidad de organizar el flujo de trabajo de un técnico independiente. Utiliza **Google Sheets** como base de datos principal, permitiendo el ingreso de solicitudes a través de **Google Forms** (ideal para que los clientes se autogestionen) o directamente desde una interfaz web amigable. La comunicación entre el frontend y la base de datos se realiza a través de una API construida con **Google Apps Script**.
